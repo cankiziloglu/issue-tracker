@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React from 'react';
 import { AiFillBug } from 'react-icons/ai';
 
@@ -13,6 +16,9 @@ export default function NavBar() {
       href: '/issues',
     },
   ];
+
+  const activeLink = usePathname();
+
   return (
     <nav className='p-2 border-b mb-5'>
       <ul className='flex space-x-6 h-14 items-center'>
@@ -23,7 +29,7 @@ export default function NavBar() {
           <Link
             key={link.href}
             href={link.href}
-            className='flex space-x-6 hover:text-zinc-900 text-zinc-600 transition-all'
+            className={`${link.href === activeLink ? 'text-zinc-900' : 'text-zinc-500'} hover:text-zinc-800 transition-all`}
           >
             {link.title}
           </Link>
