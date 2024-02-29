@@ -10,16 +10,20 @@ import dynamic from 'next/dynamic';
 import { z } from 'zod';
 import { createIssueSchema } from '@/app/validationSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
+import ErrMsg from '@/app/components/ErrMsg';
 
 type IssueForm = z.infer<typeof createIssueSchema>;
 
 export default function NewIssuePage() {
-  
-  const SimpleMDE = dynamic(
-    () => import("react-simplemde-editor"),
-    { ssr: false }
-  );
-  const { register, handleSubmit, control, formState: { errors } } = useForm<IssueForm>({
+  const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
+    ssr: false,
+  });
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<IssueForm>({
     resolver: zodResolver(createIssueSchema),
   });
   const router = useRouter();
@@ -36,7 +40,7 @@ export default function NewIssuePage() {
   return (
     <div className='max-w-xl space-y-3'>
       {error && (
-        <Callout.Root variant='outline' size='1' color='red' role='alert' >
+        <Callout.Root variant='outline' size='1' color='red' role='alert'>
           <Callout.Icon>
             <AiOutlineWarning />
           </Callout.Icon>
@@ -47,7 +51,7 @@ export default function NewIssuePage() {
         <TextField.Root>
           <TextField.Input placeholder='Title' {...register('title')} />
         </TextField.Root>
-        {errors.title && <p className='text-red-600'>{errors.title.message}</p>}
+        <ErrMsg>{errors.title?.message}</ErrMsg>
         <Controller
           name='description'
           control={control}
@@ -55,7 +59,7 @@ export default function NewIssuePage() {
             <SimpleMDE placeholder='Description' {...field} ref={null} />
           )}
         />
-        {errors.description && <p className='text-red-600'>{errors.description.message}</p>}
+        <ErrMsg>{errors.description?.message}</ErrMsg>
         <Button>Submit</Button>
       </form>
     </div>
