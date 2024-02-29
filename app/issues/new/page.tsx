@@ -7,10 +7,11 @@ import { useRouter } from 'next/navigation';
 import axios, { AxiosError } from 'axios';
 import { AiOutlineWarning } from 'react-icons/ai';
 import dynamic from 'next/dynamic';
-import { z } from 'zod';
+import { set, z } from 'zod';
 import { createIssueSchema } from '@/app/validationSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrMsg from '@/app/components/ErrMsg';
+import Spinner from '@/app/components/Spinner';
 
 type IssueForm = z.infer<typeof createIssueSchema>;
 
@@ -28,11 +29,14 @@ export default function NewIssuePage() {
   });
   const router = useRouter();
   const [error, setError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const onSubmit = async (data: IssueForm) => {
     try {
+      setIsSubmitting(true);
       await axios.post('/api/issues', data);
       router.push('/issues');
     } catch (error: AxiosError | any) {
+      setIsSubmitting(false);
       setError('An Unexpected error occurred. Please try again later.');
     }
   };
@@ -60,7 +64,10 @@ export default function NewIssuePage() {
           )}
         />
         <ErrMsg>{errors.description?.message}</ErrMsg>
-        <Button>Submit</Button>
+        <Button disabled={isSubmitting}>
+          Submit
+          {isSubmitting && <Spinner />}
+        </Button>
       </form>
     </div>
   );
