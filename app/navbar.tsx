@@ -20,8 +20,8 @@ export default function NavBar() {
   const activeLink = usePathname();
 
   return (
-    <nav className='p-2 border-b mb-5'>
-      <ul className='flex space-x-6 h-14 items-center'>
+    <nav className='p-5 border-b mb-5'>
+      <ul className='flex space-x-6 h-6 items-center'>
         <Link href='/'>
           <AiFillBug className='text-2xl' />
         </Link>
