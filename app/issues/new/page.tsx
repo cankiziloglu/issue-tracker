@@ -19,6 +19,7 @@ export default function NewIssuePage() {
   const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
     ssr: false,
   });
+
   const {
     register,
     handleSubmit,
@@ -27,9 +28,12 @@ export default function NewIssuePage() {
   } = useForm<IssueForm>({
     resolver: zodResolver(createIssueSchema),
   });
+
   const router = useRouter();
+
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const onSubmit = async (data: IssueForm) => {
     try {
       setIsSubmitting(true);
