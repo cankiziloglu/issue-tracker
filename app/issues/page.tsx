@@ -1,5 +1,5 @@
 import prisma from '@/prisma/client';
-import { Button, Table } from '@radix-ui/themes';
+import { Table } from '@radix-ui/themes';
 import Link from 'next/link';
 import React from 'react';
 import IssueStatusBadge from '../components/IssueStatusBadge';
@@ -50,3 +50,4 @@ export default async function IssuesPage() {
     </>
   );
 }
+
