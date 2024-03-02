@@ -1,7 +1,7 @@
 'use client';
 import ErrMsg from '@/app/components/ErrMsg';
 import Spinner from '@/app/components/Spinner';
-import { createIssueSchema } from '@/app/validationSchemas';
+import { IssueSchema } from '@/app/validationSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Issue } from '@prisma/client';
 import { Button, Callout, TextField } from '@radix-ui/themes';
@@ -14,7 +14,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { AiOutlineWarning } from 'react-icons/ai';
 import { z } from 'zod';
 
-type IssueFormData = z.infer<typeof createIssueSchema>;
+type IssueFormData = z.infer<typeof IssueSchema>;
 
 export default function IssueForm({ issue }: { issue?: Issue }) {
   const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
@@ -27,7 +27,7 @@ export default function IssueForm({ issue }: { issue?: Issue }) {
     control,
     formState: { errors },
   } = useForm<IssueFormData>({
-    resolver: zodResolver(createIssueSchema),
+    resolver: zodResolver(IssueSchema),
   });
 
   const router = useRouter();
@@ -38,8 +38,13 @@ export default function IssueForm({ issue }: { issue?: Issue }) {
   const onSubmit = async (data: IssueFormData) => {
     try {
       setIsSubmitting(true);
-      await axios.post('/api/issues', data);
-      router.push('/issues');
+      if (issue) {
+        await axios.patch(`/api/issues/${issue.id}`, data);
+        router.push(`/issues/${issue.id}`);
+      } else {
+        await axios.post('/api/issues', data);
+        router.push('/issues');
+      }
     } catch (error: AxiosError | any) {
       setIsSubmitting(false);
       setError('An Unexpected error occurred. Please try again later.');
@@ -75,7 +80,7 @@ export default function IssueForm({ issue }: { issue?: Issue }) {
         />
         <ErrMsg>{errors.description?.message}</ErrMsg>
         <Button disabled={isSubmitting}>
-          Submit
+          {issue ? 'Update Issue' : 'Create Issue'}{' '}
           {isSubmitting && <Spinner />}
         </Button>
       </form>
