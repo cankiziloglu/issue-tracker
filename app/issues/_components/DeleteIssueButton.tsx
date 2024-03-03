@@ -1,4 +1,5 @@
 'use client';
+import Spinner from '@/app/components/Spinner';
 import { AlertDialog, Button, Flex } from '@radix-ui/themes';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -9,13 +10,16 @@ import { set } from 'zod';
 export default function DeleteIssueButton({ issueId }: { issueId: number }) {
   const router = useRouter();
   const [error, setError] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     try {
+      setIsDeleting(true);
       await axios.delete(`/api/issues/${issueId}`);
       router.push('/issues');
       router.refresh();
     } catch (error) {
+      setIsDeleting(false);
       setError(true);
     }
   };
@@ -24,9 +28,10 @@ export default function DeleteIssueButton({ issueId }: { issueId: number }) {
     <>
       <AlertDialog.Root>
         <AlertDialog.Trigger>
-          <Button color='red' type={undefined}>
+          <Button color='red' type={undefined} disabled={isDeleting}>
             <AiFillDelete />
             Delete Issue
+            {isDeleting && <Spinner />}
           </Button>
         </AlertDialog.Trigger>
         <AlertDialog.Content style={{ maxWidth: 450 }}>
@@ -34,7 +39,6 @@ export default function DeleteIssueButton({ issueId }: { issueId: number }) {
           <AlertDialog.Description size='2'>
             Are you sure? This issue will be deleted permanently.
           </AlertDialog.Description>
-
           <Flex gap='3' mt='4' justify='end'>
             <AlertDialog.Cancel>
               <Button variant='soft' color='gray' type={undefined}>
