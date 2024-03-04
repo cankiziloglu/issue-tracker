@@ -5,13 +5,14 @@ import IssueStatusBadge from '../components/IssueStatusBadge';
 import IssueToolbar from './_components/issueToolbar';
 import { Status } from '.prisma/client';
 import { AiFillCaretDown, AiFillCaretUp } from 'react-icons/ai';
+import Pagination from './_components/Pagination';
 
 type Sort = 'asc' | 'desc';
 
 export default async function IssuesPage({
   searchParams,
 }: {
-  searchParams: { status: Status; orderBy: string; sort: Sort };
+  searchParams: { status: Status; orderBy: string; sort: Sort; page: string };
 }) {
   const columns: { label: string; key: string; class?: string }[] = [
     { label: 'Issue', key: 'title' },
@@ -24,6 +25,8 @@ export default async function IssuesPage({
   const status = statuses.includes(searchParams.status)
     ? searchParams.status
     : undefined;
+
+  const where = { status };
 
   const sortOptions: Sort[] = ['asc', 'desc'];
   const sort: Sort = sortOptions.includes(searchParams.sort)
@@ -43,11 +46,18 @@ export default async function IssuesPage({
       : undefined;
   }
 
+  const page = parseInt(searchParams.page) || 1;
+  const pageSize = 10;
+
   const issues = await prisma.issue.findMany({
-    where: { status },
+    where,
     include: { assignedTo: true },
     orderBy,
+    skip: (page - 1) * pageSize,
+    take: pageSize,
   });
+
+  const issueCount = await prisma.issue.count({ where });
 
   const toggleSort = (col: string, dir: Sort) => {
     if (col === searchParams.orderBy) {
@@ -116,6 +126,11 @@ export default async function IssuesPage({
           ))}
         </Table.Body>
       </Table.Root>
+      <Pagination
+        itemCount={issueCount}
+        pageSize={pageSize}
+        currentPage={page}
+      />
     </>
   );
 }
