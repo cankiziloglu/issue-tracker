@@ -1,5 +1,5 @@
 import prisma from '@/prisma/client';
-import { Table } from '@radix-ui/themes';
+import { Flex, Table, Text } from '@radix-ui/themes';
 import Link from 'next/link';
 import IssueStatusBadge from '../components/IssueStatusBadge';
 import IssueToolbar from './_components/issueToolbar';
@@ -95,9 +95,13 @@ export default async function IssuesPage({
                 >
                   {issue.title}
                 </Link>
-                <span className='block md:hidden'>
+                <Flex direction='row' justify='between' className='md:hidden'>
                   <IssueStatusBadge status={issue.status} />
-                </span>
+                  <Text size='1' className='md:hidden'>
+                    {' '}
+                    {issue.assignedTo?.name || 'Unassigned'}
+                  </Text>
+                </Flex>
               </Table.Cell>
               <Table.Cell className='hidden md:table-cell'>
                 <IssueStatusBadge status={issue.status} />
@@ -105,7 +109,9 @@ export default async function IssuesPage({
               <Table.Cell className='hidden md:table-cell'>
                 {issue.createdAt.toDateString()}
               </Table.Cell>
-              <Table.Cell>{issue.assignedTo?.name || 'Unassigned'}</Table.Cell>
+              <Table.Cell className='hidden md:table-cell'>
+                {issue.assignedTo?.name || 'Unassigned'}
+              </Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
