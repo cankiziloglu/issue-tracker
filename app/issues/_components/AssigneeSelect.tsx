@@ -2,19 +2,19 @@
 
 import { User } from '@prisma/client';
 import { Select } from '@radix-ui/themes';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
 
 export default function AssigneeSelect() {
-  const [users, setUsers] = useState<User[]>([]);
+  const { data: users, error } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const users = await axios.get('/api/users').then((res) => res.data);
+      return users;
+    },
+  });
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const users = await axios.get('/api/users');
-      setUsers(users.data);
-    };
-    fetchUsers();
-  }, []);
+  if (error) return null;
 
   return (
     <Select.Root>
@@ -22,7 +22,7 @@ export default function AssigneeSelect() {
       <Select.Content>
         <Select.Group>
           <Select.Label>Select Assignee</Select.Label>
-          {users.map((user) => (
+          {users?.map((user) => (
             <Select.Item key={user.id} value={user.id}>
               {user.name}
             </Select.Item>
