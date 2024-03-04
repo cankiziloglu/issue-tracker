@@ -13,6 +13,7 @@ export default function AssigneeSelect({ issue }: { issue: Issue }) {
       const users = await axios.get('/api/users').then((res) => res.data);
       return users;
     },
+    staleTime: 1000 * 60 * 30,
   });
 
   if (error) return null;
