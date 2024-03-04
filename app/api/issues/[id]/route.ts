@@ -1,5 +1,5 @@
 import authOptions from '@/app/auth/authOptions';
-import { IssueSchema } from '@/app/validationSchemas';
+import { IssueSchema, patchIssueSchema } from '@/app/validationSchemas';
 import prisma from '@/prisma/client';
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,7 +13,7 @@ export async function PATCH(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
-  const validated = IssueSchema.safeParse(body);
+  const validated = patchIssueSchema.safeParse(body);
   if (!validated.success)
     return NextResponse.json(validated.error.errors, { status: 400 });
 
@@ -22,15 +22,27 @@ export async function PATCH(
   if (!issue)
     return NextResponse.json({ message: 'Issue not found' }, { status: 404 });
 
+  const { title, description, assignedToId } = validated.data;
+
+  if (assignedToId) {
+    const user = await prisma.user.findUnique({
+      where: { id: assignedToId },
+    });
+
+    if (!user)
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+  }
+
   const updatedIssue = await prisma.issue.update({
     where: { id: parseInt(params.id) },
     data: {
-      title: validated.data.title,
-      description: validated.data.description,
+      title,
+      description,
+      assignedToId,
     },
   });
 
-  return NextResponse.json(updatedIssue, { status: 201 });
+  return NextResponse.json(updatedIssue, { status: 200 });
 }
 
 export async function DELETE(
