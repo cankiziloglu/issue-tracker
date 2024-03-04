@@ -1,25 +1,60 @@
 import prisma from '@/prisma/client';
 import { Table } from '@radix-ui/themes';
 import Link from 'next/link';
-import React from 'react';
 import IssueStatusBadge from '../components/IssueStatusBadge';
 import IssueToolbar from './_components/issueToolbar';
 import { Status } from '.prisma/client';
+import { AiFillCaretDown, AiFillCaretUp } from 'react-icons/ai';
+
+type Sort = 'asc' | 'desc';
 
 export default async function IssuesPage({
   searchParams,
 }: {
-  searchParams: { status: Status };
+  searchParams: { status: Status; orderBy: string; sort: Sort };
 }) {
-  const param = searchParams.status;
+  const columns: { label: string; key: string; class?: string }[] = [
+    { label: 'Issue', key: 'title' },
+    { label: 'Status', key: 'status', class: 'hidden md:table-cell' },
+    { label: 'Created At', key: 'createdAt', class: 'hidden md:table-cell' },
+    { label: 'Assigned To', key: 'assignedTo', class: 'hidden md:table-cell' },
+  ];
+
   const statuses = Object.values(Status);
-  const status = statuses.includes(param) ? param : undefined;
+  const status = statuses.includes(searchParams.status)
+    ? searchParams.status
+    : undefined;
+
+  const sortOptions: Sort[] = ['asc', 'desc'];
+  const sort: Sort = sortOptions.includes(searchParams.sort)
+    ? searchParams.sort
+    : 'asc';
+
+  let orderBy;
+  if (searchParams.orderBy && searchParams.orderBy === 'assignedTo') {
+    orderBy = {
+      assignedTo: {
+        name: sort || 'asc',
+      },
+    };
+  } else if (searchParams.orderBy) {
+    orderBy = columns.map((column) => column.key).includes(searchParams.orderBy)
+      ? { [searchParams.orderBy]: sort || 'asc' }
+      : undefined;
+  }
 
   const issues = await prisma.issue.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { assignedTo: true },
     where: { status },
+    include: { assignedTo: true },
+    orderBy,
   });
+
+  const toggleSort = (col: string, dir: Sort) => {
+    if (col === searchParams.orderBy) {
+      return dir === 'asc' ? 'desc' : 'asc';
+    }
+    return 'asc';
+  };
 
   return (
     <>
@@ -27,16 +62,27 @@ export default async function IssuesPage({
       <Table.Root variant='surface'>
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeaderCell>Issue</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell className='hidden md:table-cell'>
-              Status
-            </Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell className='hidden md:table-cell'>
-              Created At
-            </Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell className='hidden md:table-cell'>
-              Assigned To
-            </Table.ColumnHeaderCell>
+            {columns.map((column) => (
+              <Table.ColumnHeaderCell className={column.class} key={column.key}>
+                <Link
+                  href={{
+                    query: {
+                      ...searchParams,
+                      orderBy: column.key,
+                      sort: toggleSort(column.key, sort),
+                    },
+                  }}
+                >
+                  {column.label}{' '}
+                  {column.key === searchParams.orderBy && sort === 'asc' && (
+                    <AiFillCaretUp className='inline' />
+                  )}
+                  {column.key === searchParams.orderBy && sort === 'desc' && (
+                    <AiFillCaretDown className='inline' />
+                  )}
+                </Link>
+              </Table.ColumnHeaderCell>
+            ))}
           </Table.Row>
         </Table.Header>
         <Table.Body>
