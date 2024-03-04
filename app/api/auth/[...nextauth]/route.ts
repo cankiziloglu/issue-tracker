@@ -11,6 +11,9 @@ const handler = NextAuth({
     }),
   ],
   adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: 'jwt',
+  },
 });
 
 export { handler as GET, handler as POST };
