@@ -4,11 +4,21 @@ import Link from 'next/link';
 import React from 'react';
 import IssueStatusBadge from '../components/IssueStatusBadge';
 import IssueToolbar from './_components/issueToolbar';
+import { Status } from '.prisma/client';
 
-export default async function IssuesPage() {
+export default async function IssuesPage({
+  searchParams,
+}: {
+  searchParams: { status: Status };
+}) {
+  const param = searchParams.status;
+  const statuses = Object.values(Status);
+  const status = statuses.includes(param) ? param : undefined;
+
   const issues = await prisma.issue.findMany({
     orderBy: { createdAt: 'desc' },
     include: { assignedTo: true },
+    where: { status },
   });
 
   return (
