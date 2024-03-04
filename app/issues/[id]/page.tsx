@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import DeleteIssueButton from '../_components/DeleteIssueButton';
 import EditIssueButton from '../_components/EditIssueButton';
 import IssueView from '../_components/IssueView';
+import AssigneeSelect from '../_components/AssigneeSelect';
 
 export default async function IssueDetailPage({
   params,
@@ -28,6 +29,7 @@ export default async function IssueDetailPage({
       {session && (
         <Box>
           <Flex direction='column' gap='4'>
+            <AssigneeSelect />
             <EditIssueButton issueId={issue.id} />
             <DeleteIssueButton issueId={issue.id} />
           </Flex>
