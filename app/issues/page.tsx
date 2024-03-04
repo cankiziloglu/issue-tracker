@@ -6,7 +6,10 @@ import IssueStatusBadge from '../components/IssueStatusBadge';
 import IssueToolbar from './issueToolbar';
 
 export default async function IssuesPage() {
-  const issues = await prisma.issue.findMany();
+  const issues = await prisma.issue.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { assignedTo: true },
+  });
 
   return (
     <>
@@ -20,6 +23,9 @@ export default async function IssuesPage() {
             </Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className='hidden md:table-cell'>
               Created At
+            </Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell className='hidden md:table-cell'>
+              Assigned To
             </Table.ColumnHeaderCell>
           </Table.Row>
         </Table.Header>
@@ -43,6 +49,7 @@ export default async function IssuesPage() {
               <Table.Cell className='hidden md:table-cell'>
                 {issue.createdAt.toDateString()}
               </Table.Cell>
+              <Table.Cell>{issue.assignedTo?.name || 'Unassigned'}</Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
