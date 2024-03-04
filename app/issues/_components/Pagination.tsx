@@ -32,7 +32,7 @@ export default function Pagination({
   const pageCount = Math.ceil(itemCount / pageSize);
 
   return (
-    <Flex align='center' gap='2' justify='between' className='mt-5 mx-auto max-w-96'>
+    <Flex align='center' gap='3' justify='between' className='mx-auto max-w-96'>
       <Button
         color='gray'
         variant='soft'

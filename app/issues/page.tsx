@@ -1,26 +1,17 @@
-import prisma from '@/prisma/client';
-import { Flex, Table, Text } from '@radix-ui/themes';
-import Link from 'next/link';
-import IssueStatusBadge from '../components/IssueStatusBadge';
-import IssueToolbar from './_components/issueToolbar';
 import { Status } from '.prisma/client';
-import { AiFillCaretDown, AiFillCaretUp } from 'react-icons/ai';
+import prisma from '@/prisma/client';
+import { Flex } from '@radix-ui/themes';
+import IssueTable, { IssueQuery, columnNames } from './_components/IssueTable';
 import Pagination from './_components/Pagination';
+import IssueToolbar from './_components/issueToolbar';
 
 type Sort = 'asc' | 'desc';
 
 export default async function IssuesPage({
   searchParams,
 }: {
-  searchParams: { status: Status; orderBy: string; sort: Sort; page: string };
+  searchParams: IssueQuery;
 }) {
-  const columns: { label: string; key: string; class?: string }[] = [
-    { label: 'Issue', key: 'title' },
-    { label: 'Status', key: 'status', class: 'hidden md:table-cell' },
-    { label: 'Created At', key: 'createdAt', class: 'hidden md:table-cell' },
-    { label: 'Assigned To', key: 'assignedTo', class: 'hidden md:table-cell' },
-  ];
-
   const statuses = Object.values(Status);
   const status = statuses.includes(searchParams.status)
     ? searchParams.status
@@ -41,7 +32,7 @@ export default async function IssuesPage({
       },
     };
   } else if (searchParams.orderBy) {
-    orderBy = columns.map((column) => column.key).includes(searchParams.orderBy)
+    orderBy = columnNames.includes(searchParams.orderBy)
       ? { [searchParams.orderBy]: sort || 'asc' }
       : undefined;
   }
@@ -59,79 +50,16 @@ export default async function IssuesPage({
 
   const issueCount = await prisma.issue.count({ where });
 
-  const toggleSort = (col: string, dir: Sort) => {
-    if (col === searchParams.orderBy) {
-      return dir === 'asc' ? 'desc' : 'asc';
-    }
-    return 'asc';
-  };
-
   return (
-    <>
+    <Flex direction='column' gap='4'>
       <IssueToolbar />
-      <Table.Root variant='surface'>
-        <Table.Header>
-          <Table.Row>
-            {columns.map((column) => (
-              <Table.ColumnHeaderCell className={column.class} key={column.key}>
-                <Link
-                  href={{
-                    query: {
-                      ...searchParams,
-                      orderBy: column.key,
-                      sort: toggleSort(column.key, sort),
-                    },
-                  }}
-                >
-                  {column.label}{' '}
-                  {column.key === searchParams.orderBy && sort === 'asc' && (
-                    <AiFillCaretUp className='inline' />
-                  )}
-                  {column.key === searchParams.orderBy && sort === 'desc' && (
-                    <AiFillCaretDown className='inline' />
-                  )}
-                </Link>
-              </Table.ColumnHeaderCell>
-            ))}
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {issues.map((issue) => (
-            <Table.Row key={issue.id}>
-              <Table.Cell>
-                <Link
-                  href={`/issues/${issue.id}`}
-                  className='font-medium hover:underline'
-                >
-                  {issue.title}
-                </Link>
-                <Flex direction='row' justify='between' className='md:hidden'>
-                  <IssueStatusBadge status={issue.status} />
-                  <Text size='1' className='md:hidden'>
-                    {' '}
-                    {issue.assignedTo?.name || 'Unassigned'}
-                  </Text>
-                </Flex>
-              </Table.Cell>
-              <Table.Cell className='hidden md:table-cell'>
-                <IssueStatusBadge status={issue.status} />
-              </Table.Cell>
-              <Table.Cell className='hidden md:table-cell'>
-                {issue.createdAt.toDateString()}
-              </Table.Cell>
-              <Table.Cell className='hidden md:table-cell'>
-                {issue.assignedTo?.name || 'Unassigned'}
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+      <IssueTable issues={issues} searchParams={searchParams} sort={sort} />
       <Pagination
         itemCount={issueCount}
         pageSize={pageSize}
         currentPage={page}
       />
-    </>
+    </Flex>
   );
 }
 
